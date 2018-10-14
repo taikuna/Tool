@@ -37,6 +37,7 @@ while True:
 
         for important in soup.find_all('span', class_="important"):
             ws.cell(row=row, column=6).value = important.text
+            print(important.text)
 
 
         for item_list in soup.find_all(class_="content title"):
