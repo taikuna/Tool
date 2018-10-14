@@ -33,6 +33,7 @@ while True:
         for thread_link in shop_list.find_all('a', href=True):
             ws.cell(row=rl, column=5).value = thread_link['href']
             ws.cell(row=rl, column=2).value = pg.text
+            print(thread_link.get('href'))
             rl += 1
 
     for shop_title in soup.find_all(class_="content merchant _ellipsis"):
@@ -40,6 +41,7 @@ while True:
             ws.cell(row=rt, column=4).value = thread_title.text
             ws.cell(row=rt, column=3).value = th_sp
             ws.cell(row=rt, column=1).value = a.ctime()
+            print(thread_title.text)
             rt += 1
 
     wb.save(path + file_name)

@@ -35,9 +35,12 @@ while True:
         sp_count = soup.find(class_="count _medium").text
         span_count = sp_count.replace('\n', '').replace(' ', '')
 
-        for important in soup.find_all('span', class_="important"):
-            ws.cell(row=row, column=6).value = important.text
-            print(important.text)
+        for important in soup.find_all(class_="important"):
+            for item_price in important.find_all(string=True):
+                print(item_price.string)
+                ws.cell(row=row, column=4).value = item_price.string
+                wb.save(path + file_name)
+
 
 
         for item_list in soup.find_all(class_="content title"):
@@ -57,6 +60,6 @@ while True:
 
 
     wb.save(path + file_name)
-    if p ==3:
+    if p < 3:
         break
 
