@@ -21,43 +21,57 @@ ws = wb['Sheet1']
 
 row = 2
 page = 1
-stop = 0
+stop = 4
 
 while True:
     url = ws.cell(row=int(row), column=2).value
     soup = BeautifulSoup(driver.page_source, 'lxml')
     a = datetime.now()
-    driver.get(url)
 
+    driver.get(url)
 
     try:
         for shop_info in soup.find_all(class_="a-unordered-list a-nostyle a-vertical"):
-            text = shop_info.get_text()
-            info =text.replace('お問い合わせ先電話番号:',':').replace('住所:',':').replace('販売業者:',':').replace('運営責任者名:',':').replace('店舗名:',':').replace('古物商許可証番号:',':').rsplit(':')
+            com1 = shop_info.find('span', class_="a-text-bold", text=re.compile('販売業者:'))
+            name1 = shop_info.find('span', class_="a-text-bold", text=re.compile('お問い合わせ先電話番号:'))
+            add1 = shop_info.find('span', class_="a-text-bold", text=re.compile('住所:'))
+            pic1 = shop_info.find('span', class_="a-text-bold", text=re.compile('運営責任者名:'))
+            sn1 = shop_info.find('span', class_="a-text-bold", text=re.compile('店舗名:'))
+            lic1 = shop_info.find('span', class_="a-text-bold", text=re.compile('古物商許可証番号:'))
 
-            print(len(info),info)
-            company = info[1]
-            phone = int(info[2])
-            street = info[3]
-            name = info[4]
-            shop = info[5]
-            lic = info[6]
-            ws.cell(row=int(row), column=3).value = company
-            ws.cell(row=int(row), column=4).value = phone
-            ws.cell(row=int(row), column=6).value = name
-            ws.cell(row=int(row), column=7).value = shop
-            ws.cell(row=int(row), column=8).value = lic
+            company = com1.next_sibling
+            phone = name1.next_sibling
+            street = add1.next_sibling.get_text()
+            pic = pic1.next_sibling
+            shop_name = sn1.next_sibling
+            lic = lic1.next_sibling
+
+            print(company)
+            print(phone)
+            print(street)
+            print(pic)
+            print(shop_name)
+            print(lic)
+
+            ws.cell(row=row, column=3).value = shop_name
+            ws.cell(row=row, column=4).value = company
+            ws.cell(row=row, column=5).value = street
+            ws.cell(row=row, column=6).value = phone
+            ws.cell(row=row, column=7).value = pic
+            ws.cell(row=row, column=8).value = lic
+
             row +=1
-
-            print(company, phone, street, name, lic)
+            page +=1
             wb.save(file_name)
 
 
-    except selenium.common.exceptions.NoSuchElementException:
+    except AttributeError:
         pass
-        ws.cell(row=int(row),column=5).value = "Error"
+        wb.save(file_name)
         print('Error')
-        row+=1
+        row +=1
+        page +=1
+
 
     if  page == stop :
         break
