@@ -1,32 +1,63 @@
 from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
+import cchardet
 from requests import get
 import pandas as pd
 import numpy as np
 import re
 import sys
 a = datetime.now()
+from time import sleep
+
 
 
 def scan():
-    url = 'https://tabelog.com/hokkaido/'
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text, 'lxml')
-    for page in soup.find_all(class_='list-rst__rst-name-target cpy-rst-name'):
-        content_dict = {}
-        time = datetime.now()
-        title = page.text
-        link = page.get('href')
-        content_dict['time'] = time
-        content_dict['title'] = title
-        content_dict['link'] = link
+    from datetime import datetime
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.action_chains import ActionChains
 
-        print(title)
-        print(link)
-        content_list.append(content_dict)
-        df = pd.DataFrame(content_list,columns=['time','title','link'])
-        df.to_csv("tabelog_scan.csv")
+    _user_agents = ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36']
+
+    chrome_options = Options()
+    chrome_options.add_experimental_option("debuggerAddress", "127.0.0.1:9222")
+    chrome_driver = "/usr/local/bin/chromedriver"
+    driver = webdriver.Chrome(chrome_driver, options=chrome_options)
+
+    url = 'https://tabelog.com/hokkaido/A0101/'
+
+    driver.get(url)
+
+    content_list = []
+    page = 1
+    stop =3
+
+    while True:
+        print('Page ' +str(page) + ' start....')
+        soup = BeautifulSoup(driver.page_source, 'lxml')
+        for shop in soup.find_all(class_='list-rst__rst-name-target cpy-rst-name'):
+            time = datetime.now()
+            title = shop.text
+            link = shop.get('href')
+            content_dict = {}
+            content_dict['time'] = time
+            content_dict['title'] = title
+            content_dict['link'] = link
+            content_list.append(content_dict)
+            df = pd.DataFrame(content_list,columns=['time','title','link'])
+            df.to_csv("tabelog_scan.csv")
+            print(title)
+            print(link)
+        next = driver.find_element_by_xpath('//*[@class="c-pagination__arrow c-pagination__arrow--next"]')
+        ActionChains(driver).move_to_element(next).click().perform()
+
+        sleep(0)
+        page +=1
+
+        if page == stop:
+            break
+
 
 def info():
     csv_input = pd.read_csv(filepath_or_buffer='tabelog_scan.csv', sep=",")
@@ -59,7 +90,7 @@ def info():
 
                 print(info2)
 
-def test():
+def scrape():
     import pandas as pd
     import requests
     from bs4 import BeautifulSoup
@@ -107,11 +138,10 @@ def test():
         content_dict['駐車場'] = df[1].at['駐車場',1]
         content_dict['空間・設備'] = df[1].at['空間・設備',1]
         content_dict['携帯電話'] = df[1].at['携帯電話',1]
-
-
         content_dict['お子様連れ'] = df[3].at['お子様連れ',1]
         content_dict['電話番号'] = df[3].at['電話番号',1]
         content_dict['初投稿者'] = df[3].at['初投稿者',1]
+        content_dict['URL'] = url
 
         try:
             content_dict['サービス料・チャージ'] = df[0].at['サービス料・チャージ',1]
@@ -177,7 +207,7 @@ def test():
 
 
         content_list.append(content_dict)
-        dfs = pd.DataFrame(content_list,columns=['時間','店名','ジャンル','予約・お問い合わせ','予約可否','住所','交通手段','営業時間','定休日','予算','予算（口コミ集計）','支払い方法','サービス料・チャージ','席数','個室','貸切','禁煙・喫煙','駐車場','空間・設備','携帯電話','利用シーン','飲み放題コース','コース','ドリンク','料理','サービス','お子様連れ','ホームページ','公式アカウント','電話番号','初投稿者'])
+        dfs = pd.DataFrame(content_list,columns=['時間','店名','ジャンル','予約・お問い合わせ','予約可否','住所','交通手段','営業時間','定休日','予算','予算（口コミ集計）','支払い方法','サービス料・チャージ','席数','個室','貸切','禁煙・喫煙','駐車場','空間・設備','携帯電話','利用シーン','飲み放題コース','コース','ドリンク','料理','サービス','お子様連れ','ホームページ','公式アカウント','電話番号','初投稿者','URL'])
         dfs.to_csv("tabelog.csv")
 
         url_no +=1
@@ -185,10 +215,5 @@ def test():
         if url_no == stop:
             break
 
-
-
-
-
-
-test()
+scan()
 
