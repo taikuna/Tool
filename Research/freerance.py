@@ -39,21 +39,33 @@ url = 'https://crowdworks.jp/public/jobs/category/122'
 #print( tabulate(df[0], headers='keys', tablefmt='grid') )
 #location = df[0].loc['Location:']
 
-list_a=[]
-while True:
-    soup = BeautifulSoup(driver.page_source,'html5lib')
-    for links in soup.find_all(class_='item_title'):
-        for linka in links.find_all('a'):
-            link = 'https://crowdworks.jp' + linka.get('href')
-            dict_a={}
-            dict_a['link'] = link
-            dict_a['title'] = 'gazou'
-            list_a.append(dict_a)
-    df = pd.DataFrame(list_a,columns=('title','link'))
-    df2 = df.drop_duplicates('link',keep='last')
-    df2.to_csv('crowdworks_gazou.csv')
-    print(df2)
-    sleep(1)
+def scan():
+    list_a=[]
+    while True:
+        soup = BeautifulSoup(driver.page_source,'html5lib')
+        for links in soup.find_all(class_='item_title'):
+            for linka in links.find_all('a'):
+                link = 'https://crowdworks.jp' + linka.get('href')
+                dict_a={}
+                dict_a['link'] = link
+                dict_a['title'] = 'gazou'
+                list_a.append(dict_a)
+        df = pd.DataFrame(list_a,columns=('title','link'))
+        df2 = df.drop_duplicates('link',keep='last')
+        df2.to_csv('crowdworks_gazou.csv')
+        print(df2)
+        sleep(1)
 
-    driver.find_element_by_class_name('to_next_page').click()
+        driver.find_element_by_class_name('to_next_page').click()
 
+def scrape():
+    csv_input = pd.read_csv(filepath_or_buffer='crowdworks.csv', sep=",")
+    row = 0
+    while True:
+
+        url = csv_input.values[row, 2]
+        driver.get(url)
+        soup = BeautifulSoup(driver.page_source,'html5lib')
+        row+=1
+
+scrape()
